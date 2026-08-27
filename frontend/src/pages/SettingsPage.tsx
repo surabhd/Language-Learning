@@ -9,7 +9,7 @@ export default function SettingsPage() {
   const { settings, updateSettings } = useSettingsStore();
   const activeId = useProfileStore(s => s.activeProfileId);
   const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
-  const {, resetProgress } = useProgressStore();
+  const { resetProgress } = useProgressStore();
   const [local, setLocal] = useState({ ...settings });
   const [testing, setTesting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'ok' | 'fail'>('idle');

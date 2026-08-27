@@ -1,4 +1,3 @@
-import { useProfileStore } from '../stores/profileStore';
 import { useState } from 'react';
 import { ArrowLeft, CheckCircle2, XCircle, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

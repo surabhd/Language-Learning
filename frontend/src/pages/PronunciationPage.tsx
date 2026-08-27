@@ -1,4 +1,3 @@
-import { useProfileStore } from '../stores/profileStore';
 import { useState } from 'react';
 import { aiService, ttsService, speechRecognitionService } from '../services/aiService';
 import { useSettingsStore } from '../stores/settingsStore';

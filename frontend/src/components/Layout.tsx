@@ -6,7 +6,8 @@ import { useProgressStore } from '../stores/progressStore';
 import {
   LayoutDashboard, MessageSquare, BookOpen, CreditCard,
   HelpCircle, Users, Mic, BookMarked, BarChart3, Settings,
-  Sun, Moon, Menu, X, Zap, Flame, Globe2, GraduationCap
+  Sun, Moon, Menu, X, Zap, Flame, Globe2, GraduationCap,
+  Plus, ChevronUp, Check
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -25,9 +26,12 @@ const NAV_ITEMS = [
 
 export default function Layout() {
   const { darkMode, toggleDarkMode } = useSettingsStore();
-  const activeId = useProfileStore(s => s.activeProfileId);
-  const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
-  const { } = useProgressStore();
+  const { profiles, activeProfileId, switchProfile, addProfile } = useProfileStore();
+  const progress = useProgressStore(s => s.data[activeProfileId] || s.data['default']);
+  const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0];
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isAddingProfile, setIsAddingProfile] = useState(false);
+  const [newProfileName, setNewProfileName] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
@@ -105,6 +109,91 @@ export default function Layout() {
           ))}
         </nav>
 
+        {/* Profile Switcher & Dark Mode */}
+        <div className="p-3 border-t space-y-2 relative" style={{ borderColor: 'var(--border)' }}>
+          
+          {/* Profile Dropdown Menu */}
+          {showProfileMenu && (
+            <div className="absolute bottom-full left-3 right-3 mb-2 rounded-xl shadow-lg border p-2 animate-fade-in z-50" 
+              style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+              
+              {!isAddingProfile ? (
+                <>
+                  <div className="max-h-48 overflow-y-auto space-y-1 mb-2">
+                    {profiles.map(p => (
+                      <button 
+                        key={p.id}
+                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left"
+                        onClick={() => { switchProfile(p.id); setShowProfileMenu(false); }}
+                      >
+                        <span className="text-xl">{p.avatar}</span>
+                        <span className="flex-1 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{p.name}</span>
+                        {p.id === activeProfileId && <Check size={16} className="text-blue-500" />}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="border-t pt-2" style={{ borderColor: 'var(--border)' }}>
+                    <button 
+                      className="w-full flex items-center gap-2 p-2 text-sm font-medium rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                      style={{ color: 'var(--text-primary)' }}
+                      onClick={() => setIsAddingProfile(true)}
+                    >
+                      <Plus size={16} /> Add Profile
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="p-2 space-y-3">
+                  <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>New Profile</h3>
+                  <input 
+                    autoFocus
+                    type="text" 
+                    className="input w-full py-1.5 px-3 text-sm" 
+                    placeholder="Name" 
+                    value={newProfileName}
+                    onChange={e => setNewProfileName(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <button 
+                      className="btn btn-secondary flex-1 py-1.5 text-xs"
+                      onClick={() => { setIsAddingProfile(false); setNewProfileName(''); }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="btn btn-primary flex-1 py-1.5 text-xs"
+                      disabled={!newProfileName.trim()}
+                      onClick={() => {
+                        addProfile(newProfileName.trim());
+                        setIsAddingProfile(false);
+                        setNewProfileName('');
+                        setShowProfileMenu(false);
+                      }}
+                    >
+                      Create
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Active Profile Button */}
+          <button
+            onClick={() => { setShowProfileMenu(!showProfileMenu); setIsAddingProfile(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/50 text-xl">
+              {activeProfile.avatar}
+            </div>
+            <div className="flex-1 text-left truncate">
+              <div className="truncate">{activeProfile.name}</div>
+            </div>
+            <ChevronUp size={16} style={{ color: 'var(--text-muted)' }} />
+          </button>
+
+        </div>
         {/* Dark mode toggle */}
         <div className="p-3 border-t" style={{ borderColor: 'var(--border)' }}>
           <button

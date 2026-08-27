@@ -15,7 +15,7 @@ type FilterMode = 'all' | 'due' | 'mastered' | 'weak';
 export default function VocabularyPage() {
   const vocabActiveId = useProfileStore(s => s.activeProfileId);
   const words = useVocabStore(s => s.data[vocabActiveId]?.words || []);
-  const {, addWord, removeWord, getDueWords, getMasteredWords, getWeakWords } = useVocabStore();
+  const { addWord, removeWord, getDueWords, getMasteredWords, getWeakWords } = useVocabStore();
   const { updateVocabSize } = useProgressStore();
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');

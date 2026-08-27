@@ -19,7 +19,7 @@ export default function LessonDetail() {
   const [completed, setCompleted] = useState(false);
   const activeId = useProfileStore(s => s.activeProfileId);
   const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
-  const {, completeLesson, addXP } = useProgressStore();
+  const { completeLesson, addXP } = useProgressStore();
   const { addWord } = useVocabStore();
   const alreadyDone = lesson ? progress.lessonsCompleted.includes(lesson.id) : false;
 

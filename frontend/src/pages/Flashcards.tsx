@@ -1,7 +1,7 @@
-import { useProfileStore } from '../stores/profileStore';
 import { useState } from 'react';
 import { useVocabStore } from '../stores/vocabStore';
 import { useProgressStore } from '../stores/progressStore';
+import { useProfileStore } from '../stores/profileStore';
 import { ttsService } from '../services/aiService';
 import type { VocabWord } from '../types';
 import { Volume2, RotateCcw, Check, X, Minus, ChevronRight, Star } from 'lucide-react';
@@ -9,7 +9,11 @@ import { Volume2, RotateCcw, Check, X, Minus, ChevronRight, Star } from 'lucide-
 type Mode = 'menu' | 'studying' | 'done';
 
 export default function Flashcards() {
-  const { getDueWords, reviewWord, words } = useVocabStore();
+  const vocabActiveId = useProfileStore(s => s.activeProfileId);
+  const words = useVocabStore(s => s.data[vocabActiveId]?.words || []);
+  const { getDueWords, reviewWord } = useVocabStore();
+  
+
   const { addXP } = useProgressStore();
   const [mode, setMode] = useState<Mode>('menu');
   const [deck, setDeck] = useState<VocabWord[]>([]);
@@ -42,7 +46,7 @@ export default function Flashcards() {
   }
 
   const card = deck[index];
-  const progress = deck.length > 0 ? ((index) / deck.length) * 100 : 0;
+  const progressPercent = deck.length > 0 ? ((index) / deck.length) * 100 : 0;
 
   if (mode === 'menu') {
     return (
@@ -183,7 +187,7 @@ export default function Flashcards() {
       {/* Progress */}
       <div className="flex items-center gap-3">
         <div className="flex-1 progress-bar">
-          <div className="progress-fill" style={{ width: `${progress}%` }} />
+          <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
         </div>
         <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
           {index}/{deck.length}
