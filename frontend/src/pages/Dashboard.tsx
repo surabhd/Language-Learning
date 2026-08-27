@@ -15,10 +15,9 @@ import {
 export default function Dashboard() {
   const activeId = useProfileStore(s => s.activeProfileId);
   const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
-  const { } = useProgressStore();
   const vocabActiveId = useProfileStore(s => s.activeProfileId);
-  const words = useVocabStore(s => s.data[vocabActiveId]?.words || []);
-  const { } = useVocabStore();
+  const vocabData = useVocabStore(s => s.data[vocabActiveId]);
+  const words = vocabData?.words || [];
   const navigate = useNavigate();
 
   const masteredCount = words.filter(w => w.mastered).length;
