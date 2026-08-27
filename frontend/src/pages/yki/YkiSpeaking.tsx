@@ -63,11 +63,13 @@ export default function YkiSpeaking() {
     if (!response.trim()) return;
     setLoading(true);
     try {
-      const evalPrompt = `Evaluate the following Finnish speech transcription for the YKI test (keskitaso/B1 level). 
+      const evalPrompt = `Evaluate the following speech transcription for the YKI test (keskitaso/B1 level). 
 Task: ${prompt?.instructions}
 User's speech: "${response}"
 
-Provide constructive feedback in English. Evaluate vocabulary, grammar, and flow. Conclude with an estimated YKI score (e.g. Below B1, B1, or B2) and what they need to improve. Keep it concise but helpful. Use markdown.`;
+CRITICAL INSTRUCTION: The user MUST speak in Finnish. If the text is primarily in English or any language other than Finnish, you MUST instantly fail them. Start your response with "⚠️ **INVALID LANGUAGE:**" and explain that the YKI test requires Finnish. Do not evaluate their English.
+
+If the text is in Finnish, provide constructive feedback in English. Evaluate vocabulary, grammar, and flow. Conclude with an estimated YKI score (e.g. Below B1, B1, or B2) and what they need to improve. Keep it concise but helpful. Use markdown.`;
       
       const result = await aiService.chat([{ id: '1', role: 'user', content: evalPrompt, timestamp: new Date() }], settings);
       setFeedback(result);
