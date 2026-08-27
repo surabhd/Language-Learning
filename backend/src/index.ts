@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import http from 'http';
+import https from 'https';
+import selfsigned from 'selfsigned';
 import { config } from './config';
 import aiRoutes from './routes/ai';
 
@@ -37,9 +40,27 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
-app.listen(config.port, '0.0.0.0', () => {
-  console.log(`\n🇫🇮 SuomiApp Web Server running on http://0.0.0.0:${config.port}`);
-  console.log(`📡 LM Studio proxy active at ${config.lmStudio.baseUrl}`);
-});
+const HTTP_PORT = config.port; // 3001
+const HTTPS_PORT = 3002;
+
+async function startServer() {
+  http.createServer(app).listen(HTTP_PORT, '0.0.0.0', () => {
+    console.log(`\n🇫🇮 SuomiApp HTTP Server running on http://0.0.0.0:${HTTP_PORT}`);
+  });
+
+  try {
+    const pkeys: any = await (selfsigned as any).generate([{ name: 'commonName', value: 'SuomiApp' }]);
+    const httpsOptions = { key: pkeys.private, cert: pkeys.cert };
+
+    https.createServer(httpsOptions, app).listen(HTTPS_PORT, '0.0.0.0', () => {
+      console.log(`🔒 SuomiApp HTTPS Server (Voice/Microphone Enabled) running on https://0.0.0.0:${HTTPS_PORT}`);
+      console.log(`📡 LM Studio proxy active at ${config.lmStudio.baseUrl}\n`);
+    });
+  } catch (err) {
+    console.error('HTTPS setup error:', err);
+  }
+}
+
+startServer();
 
 export default app;

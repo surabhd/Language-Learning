@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { VocabWord } from '../types';
 import { useProfileStore } from './profileStore';
+import { YKI_FULL_VOCAB_BANK } from '../data/ykiVocabBank';
 
 // SM-2 Algorithm
 function sm2(word: VocabWord, quality: 0 | 1 | 2 | 3 | 4 | 5): Partial<VocabWord> {
@@ -39,28 +40,7 @@ function sm2(word: VocabWord, quality: 0 | 1 | 2 | 3 | 4 | 5): Partial<VocabWord
   };
 }
 
-const INITIAL_VOCAB: VocabWord[] = [
-  { id: 'v1', word: 'Hei', translation: 'Hello / Hi', level: 'beginner', category: 'greetings', pronunciation: 'hey', exampleFinnish: 'Hei! Miten menee?', exampleEnglish: 'Hi! How are you?', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v2', word: 'Kiitos', translation: 'Thank you', level: 'beginner', category: 'greetings', pronunciation: 'kee-tos', exampleFinnish: 'Kiitos paljon!', exampleEnglish: 'Thank you very much!', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v3', word: 'Anteeksi', translation: 'Excuse me / Sorry', level: 'beginner', category: 'greetings', pronunciation: 'an-tek-si', exampleFinnish: 'Anteeksi, missä on pankki?', exampleEnglish: 'Excuse me, where is the bank?', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v4', word: 'Kyllä', translation: 'Yes', level: 'beginner', category: 'basics', pronunciation: 'kül-lä', exampleFinnish: 'Kyllä, haluan kahvia.', exampleEnglish: 'Yes, I want coffee.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v5', word: 'Ei', translation: 'No', level: 'beginner', category: 'basics', pronunciation: 'ay', exampleFinnish: 'Ei, kiitos.', exampleEnglish: 'No, thank you.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v6', word: 'Yksi', translation: 'One', level: 'beginner', category: 'numbers', pronunciation: 'ük-si', exampleFinnish: 'Yksi kahvi, kiitos.', exampleEnglish: 'One coffee, please.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v7', word: 'Kaksi', translation: 'Two', level: 'beginner', category: 'numbers', pronunciation: 'kak-si', exampleFinnish: 'Kaksi lippua, kiitos.', exampleEnglish: 'Two tickets, please.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v8', word: 'Kolme', translation: 'Three', level: 'beginner', category: 'numbers', pronunciation: 'kol-me', exampleFinnish: 'Kolme euroa.', exampleEnglish: 'Three euros.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v9', word: 'Vesi', translation: 'Water', level: 'beginner', category: 'food', pronunciation: 've-si', exampleFinnish: 'Saanko lasillisen vettä?', exampleEnglish: 'Can I have a glass of water?', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v10', word: 'Kahvi', translation: 'Coffee', level: 'beginner', category: 'food', pronunciation: 'kah-vi', exampleFinnish: 'Suomalaiset juovat paljon kahvia.', exampleEnglish: 'Finns drink a lot of coffee.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v11', word: 'Leipä', translation: 'Bread', level: 'beginner', category: 'food', pronunciation: 'lay-pä', exampleFinnish: 'Haluatko leipää?', exampleEnglish: 'Do you want bread?', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v12', word: 'Äiti', translation: 'Mother', level: 'beginner', category: 'family', pronunciation: 'äy-ti', exampleFinnish: 'Minun äitini on lääkäri.', exampleEnglish: 'My mother is a doctor.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v13', word: 'Isä', translation: 'Father', level: 'beginner', category: 'family', pronunciation: 'i-sä', exampleFinnish: 'Isä on kotona.', exampleEnglish: 'Father is at home.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v14', word: 'Suomi', translation: 'Finland / Finnish language', level: 'beginner', category: 'basics', pronunciation: 'su-o-mi', exampleFinnish: 'Minä opiskelen suomea.', exampleEnglish: 'I am studying Finnish.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v15', word: 'Helsinki', translation: 'Helsinki (capital of Finland)', level: 'beginner', category: 'places', pronunciation: 'hel-sin-ki', exampleFinnish: 'Helsinki on Suomen pääkaupunki.', exampleEnglish: 'Helsinki is the capital of Finland.', timesSeen: 0, mastered: false, difficulty: 'easy' },
-  { id: 'v16', word: 'Partitiivia', translation: 'Partitive case', level: 'intermediate', category: 'grammar', pronunciation: 'par-ti-tii-vi-a', exampleFinnish: 'Juon kahvia.', exampleEnglish: 'I drink (some) coffee.', timesSeen: 0, mastered: false, difficulty: 'medium' },
-  { id: 'v17', word: 'Nominatiivi', translation: 'Nominative case', level: 'intermediate', category: 'grammar', pronunciation: 'no-mi-na-tii-vi', exampleFinnish: 'Koira juoksee.', exampleEnglish: 'The dog runs.', timesSeen: 0, mastered: false, difficulty: 'medium' },
-  { id: 'v18', word: 'Työ', translation: 'Work / Job', level: 'intermediate', category: 'workplace', pronunciation: 'tüö', exampleFinnish: 'Pidän työstäni.', exampleEnglish: 'I like my job.', timesSeen: 0, mastered: false, difficulty: 'medium' },
-  { id: 'v19', word: 'Kokoous', translation: 'Meeting', level: 'intermediate', category: 'workplace', pronunciation: 'ko-ko-us', exampleFinnish: 'Meillä on kokous kello kolme.', exampleEnglish: 'We have a meeting at three o\'clock.', timesSeen: 0, mastered: false, difficulty: 'medium' },
-  { id: 'v20', word: 'Saunoa', translation: 'To sauna / go to sauna', level: 'intermediate', category: 'culture', pronunciation: 'sau-no-a', exampleFinnish: 'Haluatko saunoa?', exampleEnglish: 'Do you want to go to the sauna?', timesSeen: 0, mastered: false, difficulty: 'medium' },
-];
+const INITIAL_VOCAB = YKI_FULL_VOCAB_BANK;
 
 interface VocabProfileState {
   words: VocabWord[];
@@ -160,6 +140,6 @@ export const useVocabStore = create<VocabState>()(
 
       getWeakWords: () => getWordsForActive(get()).filter(w => w.difficulty === 'hard' && !w.mastered),
     }),
-    { name: 'finnish-vocabulary-v2' }
+    { name: 'finnish-vocabulary-v5' } // Increment version to v5 to load the new 520-word database
   )
 );
