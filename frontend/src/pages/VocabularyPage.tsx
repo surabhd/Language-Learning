@@ -1,3 +1,4 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useState, useMemo } from 'react';
 import { useVocabStore } from '../stores/vocabStore';
 import { useProgressStore } from '../stores/progressStore';
@@ -12,7 +13,9 @@ type SortBy = 'word' | 'timesSeen' | 'difficulty' | 'nextReview';
 type FilterMode = 'all' | 'due' | 'mastered' | 'weak';
 
 export default function VocabularyPage() {
-  const { words, addWord, removeWord, getDueWords, getMasteredWords, getWeakWords } = useVocabStore();
+  const vocabActiveId = useProfileStore(s => s.activeProfileId);
+  const words = useVocabStore(s => s.data[vocabActiveId]?.words || []);
+  const {, addWord, removeWord, getDueWords, getMasteredWords, getWeakWords } = useVocabStore();
   const { updateVocabSize } = useProgressStore();
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');

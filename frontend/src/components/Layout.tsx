@@ -1,3 +1,4 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -5,7 +6,7 @@ import { useProgressStore } from '../stores/progressStore';
 import {
   LayoutDashboard, MessageSquare, BookOpen, CreditCard,
   HelpCircle, Users, Mic, BookMarked, BarChart3, Settings,
-  Sun, Moon, Menu, X, Zap, Flame, Globe2
+  Sun, Moon, Menu, X, Zap, Flame, Globe2, GraduationCap
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -18,12 +19,15 @@ const NAV_ITEMS = [
   { to: '/pronunciation', icon: Mic, label: 'Pronunciation' },
   { to: '/vocabulary', icon: BookMarked, label: 'Vocabulary' },
   { to: '/grammar', icon: BarChart3, label: 'Grammar' },
+  { to: '/yki', icon: GraduationCap, label: 'YKI Prep' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Layout() {
   const { darkMode, toggleDarkMode } = useSettingsStore();
-  const { progress } = useProgressStore();
+  const activeId = useProfileStore(s => s.activeProfileId);
+  const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
+  const { } = useProgressStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 

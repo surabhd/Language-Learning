@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { VocabWord } from '../types';
+import { useProfileStore } from './profileStore';
 
 // SM-2 Algorithm
 function sm2(word: VocabWord, quality: 0 | 1 | 2 | 3 | 4 | 5): Partial<VocabWord> {
@@ -61,8 +62,12 @@ const INITIAL_VOCAB: VocabWord[] = [
   { id: 'v20', word: 'Saunoa', translation: 'To sauna / go to sauna', level: 'intermediate', category: 'culture', pronunciation: 'sau-no-a', exampleFinnish: 'Haluatko saunoa?', exampleEnglish: 'Do you want to go to the sauna?', timesSeen: 0, mastered: false, difficulty: 'medium' },
 ];
 
-interface VocabState {
+interface VocabProfileState {
   words: VocabWord[];
+}
+
+interface VocabState {
+  data: Record<string, VocabProfileState>;
   addWord: (word: Omit<VocabWord, 'id' | 'timesSeen' | 'mastered'>) => void;
   updateWord: (id: string, updates: Partial<VocabWord>) => void;
   reviewWord: (id: string, quality: 0 | 1 | 2 | 3 | 4 | 5) => void;
@@ -73,40 +78,74 @@ interface VocabState {
   getWeakWords: () => VocabWord[];
 }
 
+const getActiveId = () => useProfileStore.getState().activeProfileId;
+const getWordsForActive = (state: VocabState) => state.data[getActiveId()]?.words || INITIAL_VOCAB;
+
 export const useVocabStore = create<VocabState>()(
   persist(
     (set, get) => ({
-      words: INITIAL_VOCAB,
+      data: { default: { words: INITIAL_VOCAB } },
 
       addWord: (word) => {
-        const id = `v${Date.now()}`;
-        set((state) => ({
-          words: [...state.words, { ...word, id, timesSeen: 0, mastered: false }],
-        }));
+        const id = getActiveId();
+        const wid = `v${Date.now()}`;
+        set((state) => {
+          const words = state.data[id]?.words || INITIAL_VOCAB;
+          return {
+            data: {
+              ...state.data,
+              [id]: { words: [...words, { ...word, id: wid, timesSeen: 0, mastered: false }] }
+            }
+          };
+        });
       },
 
-      updateWord: (id, updates) => {
-        set((state) => ({
-          words: state.words.map(w => w.id === id ? { ...w, ...updates } : w),
-        }));
+      updateWord: (wid, updates) => {
+        const id = getActiveId();
+        set((state) => {
+          const words = state.data[id]?.words || INITIAL_VOCAB;
+          return {
+            data: {
+              ...state.data,
+              [id]: { words: words.map(w => w.id === wid ? { ...w, ...updates } : w) }
+            }
+          };
+        });
       },
 
-      reviewWord: (id, quality) => {
-        const word = get().words.find(w => w.id === id);
-        if (!word) return;
-        const updates = sm2(word, quality);
-        set((state) => ({
-          words: state.words.map(w => w.id === id ? { ...w, ...updates } : w),
-        }));
+      reviewWord: (wid, quality) => {
+        const id = getActiveId();
+        set((state) => {
+          const words = state.data[id]?.words || INITIAL_VOCAB;
+          const word = words.find(w => w.id === wid);
+          if (!word) return state;
+          const updates = sm2(word, quality);
+          return {
+            data: {
+              ...state.data,
+              [id]: { words: words.map(w => w.id === wid ? { ...w, ...updates } : w) }
+            }
+          };
+        });
       },
 
-      removeWord: (id) => {
-        set((state) => ({ words: state.words.filter(w => w.id !== id) }));
+      removeWord: (wid) => {
+        const id = getActiveId();
+        set((state) => {
+          const words = state.data[id]?.words || INITIAL_VOCAB;
+          return {
+            data: {
+              ...state.data,
+              [id]: { words: words.filter(w => w.id !== wid) }
+            }
+          };
+        });
       },
 
       getDueWords: () => {
         const today = new Date().toISOString().split('T')[0];
-        return get().words.filter(w => {
+        const words = getWordsForActive(get());
+        return words.filter(w => {
           if (w.mastered) return false;
           if (!w.nextReview) return true;
           return w.nextReview <= today;
@@ -114,13 +153,13 @@ export const useVocabStore = create<VocabState>()(
       },
 
       getWordsByCategory: (category) => {
-        return get().words.filter(w => w.category === category);
+        return getWordsForActive(get()).filter(w => w.category === category);
       },
 
-      getMasteredWords: () => get().words.filter(w => w.mastered),
+      getMasteredWords: () => getWordsForActive(get()).filter(w => w.mastered),
 
-      getWeakWords: () => get().words.filter(w => w.difficulty === 'hard' && !w.mastered),
+      getWeakWords: () => getWordsForActive(get()).filter(w => w.difficulty === 'hard' && !w.mastered),
     }),
-    { name: 'finnish-vocabulary' }
+    { name: 'finnish-vocabulary-v2' }
   )
 );

@@ -139,3 +139,50 @@ export interface PronunciationPhrase {
   difficulty: Level;
   category: string;
 }
+// ===== YKI TYPES =====
+export type YkiSkill = 'speaking' | 'writing' | 'reading' | 'listening';
+
+export interface YkiSpeakingPrompt {
+  id: string;
+  title: string;
+  instructions: string;
+  durationSeconds: number;
+}
+
+export interface YkiWritingPrompt {
+  id: string;
+  title: string;
+  instructions: string; 
+  type: 'informal-message' | 'formal-email' | 'opinion';
+}
+
+export interface YkiReadingPassage {
+  id: string;
+  title: string;
+  text: string;
+  questions: Array<{
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: string;
+  }>;
+}
+
+export interface YkiListeningPrompt {
+  id: string;
+  title: string;
+  script: string;
+  questions: Array<{
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: string;
+  }>;
+}
+// ===== PROFILE TYPES =====
+export interface Profile {
+  id: string;
+  name: string;
+  avatar: string;
+  createdAt: string;
+}

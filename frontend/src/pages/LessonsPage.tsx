@@ -1,3 +1,4 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useNavigate } from 'react-router-dom';
 import { LESSONS } from '../data/lessons';
 import { useProgressStore } from '../stores/progressStore';
@@ -13,7 +14,9 @@ const LEVEL_INFO = {
 
 export default function LessonsPage() {
   const navigate = useNavigate();
-  const { progress } = useProgressStore();
+  const activeId = useProfileStore(s => s.activeProfileId);
+  const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
+  const { } = useProgressStore();
 
   const beginnerDone = LESSONS.filter(l => l.level === 'beginner' && progress.lessonsCompleted.includes(l.id)).length;
   const beginnerTotal = LESSONS.filter(l => l.level === 'beginner').length;

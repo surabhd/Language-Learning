@@ -1,9 +1,10 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useState, useRef, useEffect } from 'react';
-import { aiService, ttsService } from '../services/aiService';
+import { aiService, ttsService, speechRecognitionService } from '../services/aiService';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useProgressStore } from '../stores/progressStore';
 import type { ChatMessage } from '../types';
-import { Send, Volume2, Trash2, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { Send, Volume2, Trash2, Bot, User, Loader2, Sparkles, Mic, MicOff } from 'lucide-react';
 
 const SUGGESTIONS = [
   'Teach me Finnish greetings',
@@ -19,6 +20,8 @@ export default function ChatTutor() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState<string | null>(null);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [recording, setRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { settings } = useSettingsStore();
@@ -61,6 +64,10 @@ export default function ChatTutor() {
       };
       setMessages(prev => [...prev, aiMsg]);
       addXP(5);
+      
+      if (voiceMode) {
+        speak(reply, aiMsg.id);
+      }
     } catch (err: any) {
       const errMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -91,6 +98,33 @@ export default function ChatTutor() {
   function clearChat() {
     setMessages([]);
     ttsService.stop();
+  }
+
+  async function toggleRecording() {
+    if (!speechRecognitionService.isSupported()) {
+      alert('Speech recognition is not supported in your browser. Please try Chrome or Edge.');
+      return;
+    }
+
+    if (recording) {
+      // It will auto-stop, but we can manage state if needed
+      return;
+    }
+
+    setRecording(true);
+    try {
+      const transcript = await speechRecognitionService.recognize('fi-FI');
+      if (transcript.trim()) {
+        sendMessage(transcript);
+      }
+    } catch (err: any) {
+      console.error(err);
+      if (err.message !== 'No speech recognized') {
+        alert('Recording error: ' + err.message);
+      }
+    } finally {
+      setRecording(false);
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -213,6 +247,17 @@ export default function ChatTutor() {
             <Trash2 size={14} /> Clear
           </button>
         )}
+        <button 
+          className={`ml-2 btn btn-sm ${voiceMode ? 'btn-primary' : 'btn-ghost'}`} 
+          onClick={() => {
+            setVoiceMode(!voiceMode);
+            if (voiceMode) ttsService.stop();
+          }}
+          title="Toggle Voice Mode"
+        >
+          {voiceMode ? <Mic size={14} className="mr-1" /> : <MicOff size={14} className="mr-1" />}
+          Voice Mode
+        </button>
       </div>
 
       {/* Messages */}
@@ -297,12 +342,27 @@ export default function ChatTutor() {
       {/* Input */}
       <div className="p-4 border-t" style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
         <div className="flex gap-3 items-end max-w-4xl mx-auto">
+          {voiceMode && (
+            <button
+              className={`btn btn-icon shrink-0 transition-all ${recording ? 'recording-pulse' : ''}`}
+              onClick={toggleRecording}
+              disabled={loading}
+              style={{
+                background: recording ? '#EF4444' : '#0057B7',
+                color: 'white',
+                boxShadow: recording ? '0 0 0 0 rgba(239,68,68,0.4)' : '',
+              }}
+              title="Tap to speak"
+            >
+              <Mic size={18} />
+            </button>
+          )}
           <textarea
             ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask Aino anything about Finnish... (Enter to send)"
+            placeholder={voiceMode ? "Tap the microphone to speak, or type here..." : "Ask Aino anything about Finnish... (Enter to send)"}
             className="input flex-1"
             rows={1}
             style={{ maxHeight: '120px', overflowY: 'auto' }}
@@ -310,13 +370,13 @@ export default function ChatTutor() {
           <button
             className="btn btn-primary btn-icon shrink-0"
             onClick={() => sendMessage()}
-            disabled={!input.trim() || loading}
+            disabled={(!input.trim() && !recording) || loading}
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
           </button>
         </div>
         <p className="text-xs text-center mt-2" style={{ color: 'var(--text-muted)' }}>
-          Shift+Enter for new line • Each message earns +5 XP
+          {voiceMode ? "Voice Mode: AI will read responses aloud and you can reply by voice." : "Shift+Enter for new line • Each message earns +5 XP"}
         </p>
       </div>
     </div>

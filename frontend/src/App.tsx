@@ -13,6 +13,11 @@ import PronunciationPage from './pages/PronunciationPage';
 import VocabularyPage from './pages/VocabularyPage';
 import GrammarPage from './pages/GrammarPage';
 import SettingsPage from './pages/SettingsPage';
+import YkiPage from './pages/YkiPage';
+import YkiSpeaking from './pages/yki/YkiSpeaking';
+import YkiWriting from './pages/yki/YkiWriting';
+import YkiReading from './pages/yki/YkiReading';
+import YkiListening from './pages/yki/YkiListening';
 
 export default function App() {
   const { darkMode } = useSettingsStore();
@@ -40,6 +45,11 @@ export default function App() {
           <Route path="vocabulary" element={<VocabularyPage />} />
           <Route path="grammar" element={<GrammarPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="/yki" element={<YkiPage />} />
+          <Route path="/yki/speaking" element={<YkiSpeaking />} />
+          <Route path="/yki/writing" element={<YkiWriting />} />
+          <Route path="/yki/reading" element={<YkiReading />} />
+          <Route path="/yki/listening" element={<YkiListening />} />
         </Route>
       </Routes>
     </BrowserRouter>

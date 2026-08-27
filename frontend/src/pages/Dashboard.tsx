@@ -1,3 +1,4 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../stores/progressStore';
 import { useVocabStore } from '../stores/vocabStore';
@@ -12,8 +13,12 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { progress } = useProgressStore();
-  const { words } = useVocabStore();
+  const activeId = useProfileStore(s => s.activeProfileId);
+  const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
+  const { } = useProgressStore();
+  const vocabActiveId = useProfileStore(s => s.activeProfileId);
+  const words = useVocabStore(s => s.data[vocabActiveId]?.words || []);
+  const { } = useVocabStore();
   const navigate = useNavigate();
 
   const masteredCount = words.filter(w => w.mastered).length;

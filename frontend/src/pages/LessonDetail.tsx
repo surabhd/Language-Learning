@@ -1,3 +1,4 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getLessonById } from '../data/lessons';
@@ -16,7 +17,9 @@ export default function LessonDetail() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completed, setCompleted] = useState(false);
-  const { progress, completeLesson, addXP } = useProgressStore();
+  const activeId = useProfileStore(s => s.activeProfileId);
+  const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
+  const {, completeLesson, addXP } = useProgressStore();
   const { addWord } = useVocabStore();
   const alreadyDone = lesson ? progress.lessonsCompleted.includes(lesson.id) : false;
 

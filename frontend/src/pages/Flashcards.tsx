@@ -1,3 +1,4 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useState } from 'react';
 import { useVocabStore } from '../stores/vocabStore';
 import { useProgressStore } from '../stores/progressStore';

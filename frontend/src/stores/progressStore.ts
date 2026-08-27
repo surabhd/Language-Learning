@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Progress, DailyActivity } from '../types';
+import { useProfileStore } from './profileStore';
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -18,7 +19,7 @@ const defaultProgress: Progress = {
 };
 
 interface ProgressState {
-  progress: Progress;
+  data: Record<string, Progress>;
   addXP: (amount: number) => void;
   completeLesson: (lessonId: string) => void;
   addQuizResult: (topic: string, level: string, score: number) => void;
@@ -29,48 +30,64 @@ interface ProgressState {
   recordActivity: (xp: number, minutes: number) => void;
 }
 
+// Helper to get active profile ID
+const getActiveId = () => useProfileStore.getState().activeProfileId;
+
 export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
-      progress: defaultProgress,
+      data: { default: defaultProgress },
 
       addXP: (amount: number) => {
+        const id = getActiveId();
         set((state) => {
-          const totalXP = state.progress.totalXP + amount;
+          const current = state.data[id] || defaultProgress;
+          const totalXP = current.totalXP + amount;
           const level = Math.floor(totalXP / 500) + 1;
-          return { progress: { ...state.progress, totalXP, level } };
+          return { data: { ...state.data, [id]: { ...current, totalXP, level } } };
         });
         get().updateStreak();
         get().recordActivity(amount, 0);
       },
 
       completeLesson: (lessonId: string) => {
+        const id = getActiveId();
         set((state) => {
-          if (state.progress.lessonsCompleted.includes(lessonId)) return state;
+          const current = state.data[id] || defaultProgress;
+          if (current.lessonsCompleted.includes(lessonId)) return state;
           return {
-            progress: {
-              ...state.progress,
-              lessonsCompleted: [...state.progress.lessonsCompleted, lessonId],
+            data: {
+              ...state.data,
+              [id]: { ...current, lessonsCompleted: [...current.lessonsCompleted, lessonId] }
             },
           };
         });
       },
 
       addQuizResult: (topic: string, level: string, score: number) => {
-        set((state) => ({
-          progress: {
-            ...state.progress,
-            quizHistory: [
-              { date: today(), score, topic, level: level as Progress['quizHistory'][0]['level'] },
-              ...state.progress.quizHistory.slice(0, 49),
-            ],
-          },
-        }));
+        const id = getActiveId();
+        set((state) => {
+          const current = state.data[id] || defaultProgress;
+          return {
+            data: {
+              ...state.data,
+              [id]: {
+                ...current,
+                quizHistory: [
+                  { date: today(), score, topic, level: level as Progress['quizHistory'][0]['level'] },
+                  ...current.quizHistory.slice(0, 49),
+                ],
+              }
+            }
+          };
+        });
       },
 
       updateStreak: () => {
+        const id = getActiveId();
         set((state) => {
-          const lastActive = state.progress.lastActiveDate;
+          const current = state.data[id] || defaultProgress;
+          const lastActive = current.lastActiveDate;
           const todayStr = today();
           if (lastActive === todayStr) return state;
 
@@ -78,42 +95,50 @@ export const useProgressStore = create<ProgressState>()(
           yesterday.setDate(yesterday.getDate() - 1);
           const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-          const newStreak = lastActive === yesterdayStr ? state.progress.streak + 1 : 1;
-          const longestStreak = Math.max(newStreak, state.progress.longestStreak);
+          const newStreak = lastActive === yesterdayStr ? current.streak + 1 : 1;
+          const longestStreak = Math.max(newStreak, current.longestStreak);
 
           return {
-            progress: {
-              ...state.progress,
-              streak: newStreak,
-              longestStreak,
-              lastActiveDate: todayStr,
-            },
+            data: {
+              ...state.data,
+              [id]: { ...current, streak: newStreak, longestStreak, lastActiveDate: todayStr }
+            }
           };
         });
       },
 
       addPracticeTime: (minutes: number) => {
-        set((state) => ({
-          progress: {
-            ...state.progress,
-            practiceMinutes: state.progress.practiceMinutes + minutes,
-          },
-        }));
+        const id = getActiveId();
+        set((state) => {
+          const current = state.data[id] || defaultProgress;
+          return {
+            data: {
+              ...state.data,
+              [id]: { ...current, practiceMinutes: current.practiceMinutes + minutes }
+            }
+          };
+        });
         get().recordActivity(0, minutes);
       },
 
       updateVocabSize: (size: number) => {
-        set((state) => ({ progress: { ...state.progress, vocabSize: size } }));
+        const id = getActiveId();
+        set((state) => {
+          const current = state.data[id] || defaultProgress;
+          return { data: { ...state.data, [id]: { ...current, vocabSize: size } } };
+        });
       },
 
       recordActivity: (xp: number, minutes: number) => {
+        const id = getActiveId();
         set((state) => {
+          const current = state.data[id] || defaultProgress;
           const todayStr = today();
-          const existing = state.progress.weeklyActivity.find(d => d.date === todayStr);
+          const existing = current.weeklyActivity.find(d => d.date === todayStr);
           let weeklyActivity: DailyActivity[];
 
           if (existing) {
-            weeklyActivity = state.progress.weeklyActivity.map(d =>
+            weeklyActivity = current.weeklyActivity.map(d =>
               d.date === todayStr
                 ? { ...d, xp: d.xp + xp, minutesPracticed: d.minutesPracticed + minutes }
                 : d
@@ -126,15 +151,18 @@ export const useProgressStore = create<ProgressState>()(
               lessonsCompleted: 0,
               quizzesTaken: 0,
             };
-            weeklyActivity = [newEntry, ...state.progress.weeklyActivity].slice(0, 30);
+            weeklyActivity = [newEntry, ...current.weeklyActivity].slice(0, 30);
           }
 
-          return { progress: { ...state.progress, weeklyActivity } };
+          return { data: { ...state.data, [id]: { ...current, weeklyActivity } } };
         });
       },
 
-      resetProgress: () => set({ progress: defaultProgress }),
+      resetProgress: () => {
+        const id = getActiveId();
+        set((state) => ({ data: { ...state.data, [id]: defaultProgress } }));
+      }
     }),
-    { name: 'finnish-progress' }
+    { name: 'finnish-progress-v2' } // Version bump to avoid clash with old format
   )
 );

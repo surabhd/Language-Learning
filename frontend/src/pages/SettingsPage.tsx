@@ -1,3 +1,4 @@
+import { useProfileStore } from '../stores/profileStore';
 import { useState } from 'react';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useProgressStore } from '../stores/progressStore';
@@ -6,7 +7,9 @@ import { Save, Wifi, WifiOff, Loader2, RefreshCw, AlertTriangle, ChevronDown, Ch
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useSettingsStore();
-  const { progress, resetProgress } = useProgressStore();
+  const activeId = useProfileStore(s => s.activeProfileId);
+  const progress = useProgressStore(s => s.data[activeId] || s.data['default']);
+  const {, resetProgress } = useProgressStore();
   const [local, setLocal] = useState({ ...settings });
   const [testing, setTesting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'ok' | 'fail'>('idle');
